@@ -67,11 +67,16 @@ worldinit          # builds rooms/exits/NPCs from world/generated/ (safe to re-r
 against the world's current state. No commands to memorize, no quest names to type:
 ```
 search the collapsed library for a hidden way
+take the rune-etched key and unlock the iron chest
+open the chest and put on the storm-cloak
 decipher the storm-runes carved into the wall
 go south                     # (or "head to the marsh" — movement is understood)
 look around
 ask the Wizard what I should do
 ```
+Things are **real and persistent**: a chest you open stays open, a key you take stays in
+your pack, a cloak you wear stays worn (you can even put one on an NPC) — across turns and
+logins. `look` shows their current state.
 A natural-language **interpreter** (EVA-Qwen) maps each action to whatever objective is
 reachable *here* and judges it like a good GM — a clever, plausible approach succeeds, a
 near-miss gets partial credit, nonsense just gets flavor. `look` shows each location's

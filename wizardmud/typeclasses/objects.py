@@ -23,6 +23,57 @@ class ObjectParent:
     """
 
 
+class WorldbibleObject(DefaultObject):
+    """A persistent, manipulable thing in the world: an item, a wearable, a container, or a
+    fixed feature (door/lever). Its STATE is real and saved — an opened chest stays open,
+    a taken key stays in your pack, a worn cloak stays worn — and that state is fed back into
+    the interpreter each turn, so the world remembers (no more per-turn re-improvising).
+
+    Driven by the natural-language interpreter (world/interpreter.py emits ops; commands/
+    play_cmds.py applies them here). The golden rule holds: the LLM proposes, this engine
+    state is authoritative.
+
+    db flags (all default False/None):
+      wb_takeable   can be picked up        wb_wearable  can be worn
+      wb_container  holds things            wb_openable  open/close toggles
+      wb_is_open    current open state      wb_locked    blocks opening until unlocked
+      wb_key        key item key that unlocks it (str)
+      wb_worn_by    who is wearing it (Object) or None
+      wb_fixture    immovable (door/lever/wall) — never takeable
+    """
+
+    def at_object_creation(self):
+        self.locks.add("get:false()")  # default immovable; worldinit relaxes for takeables
+
+    # --- display: name carries state, desc reveals container contents -------
+    def get_display_name(self, looker=None, **kwargs):
+        name = super().get_display_name(looker, **kwargs)
+        tag = self._state_tag()
+        return f"{name} {tag}" if tag else name
+
+    def _state_tag(self):
+        if self.db.wb_worn_by:
+            return "|x(worn)|n"
+        if self.db.wb_locked:
+            return "|x(locked)|n"
+        if self.db.wb_openable:
+            return "|x(open)|n" if self.db.wb_is_open else "|x(closed)|n"
+        return ""
+
+    def get_display_desc(self, looker, **kwargs):
+        desc = super().get_display_desc(looker, **kwargs) or ""
+        if self.db.wb_container:
+            if self.db.wb_locked:
+                desc += "\nIt is locked."
+            elif self.db.wb_is_open:
+                inside = [o for o in self.contents if not o.destination]
+                desc += ("\nInside: " + ", ".join(o.get_display_name(looker) for o in inside)
+                         if inside else "\nIt is open and empty.")
+            else:
+                desc += "\nIt is closed."
+        return desc
+
+
 class Object(ObjectParent, DefaultObject):
     """
     This is the root Object typeclass, representing all entities that

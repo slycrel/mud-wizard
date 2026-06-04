@@ -424,6 +424,32 @@ inverts it — the player describes what they **do**, in plain words, and the LL
 This is the answer to "AI Dungeon has no world model": the model proposes (intent + verdict), the
 validated graph disposes (flags + win). Quest ids never reach the player.
 
+## 8f. World-state objects — persistent, manipulable things
+✅ **built** — `typeclasses/objects.py` (`WorldbibleObject`), layout `objects`, interpreter `ops`
+
+The flag spine is coarse state; this is the *fine* state that makes it a world and not a 1-shot
+prompt. A chest, a key, a cloak, a door are **real Evennia objects with saved state** — open a chest
+and it *stays* open; take a key and it's in your pack across logins; wear a cloak (or put one on an
+NPC) and it *stays* worn.
+
+- **Objects** (`WorldbibleObject`): db flags `wb_takeable / wb_wearable / wb_container / wb_openable /
+  wb_is_open / wb_locked / wb_key / wb_worn_by / wb_fixture`. `look` shows state ("an iron chest
+  (closed)") and an open container reveals its contents.
+- **Authored in the manifest** (`worldbible_layout.json` → `objects`): each entry is
+  `{key, location, kind: item|wearable|container|fixture, desc, is_open?, locked?, key_item?,
+  contains?[]}`. `worldinit` spawns them (nested container contents too), idempotently, tagged `wb`.
+- **The interpreter emits `ops`** — `open/close/unlock/lock/take/drop/wear/remove/give/put/use` —
+  against the things it's shown; `commands/play_cmds.py` applies them to real object state.
+- **Closed feedback loop**: each turn the interpreter is fed THINGS HERE (+states), YOU CARRY, and
+  WORN, so it never re-improvises an already-opened chest. That loop is the whole point — the world
+  remembers.
+- **Still authoritative**: the engine validates each op (a locked chest won't open without its key;
+  a fixture won't be taken) and emits a corrective note if the model overreaches. Object play is
+  free sandbox; quest flags/win remain the spine, and the two can advance in the same turn.
+
+Future: a generator stage (like `--layout`) to author objects per location from canon, instead of by
+hand.
+
 ## 9. Design rule
 
 > **Game *state* is authoritative in Evennia's DB. The LLM only *narrates and

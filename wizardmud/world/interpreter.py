@@ -26,6 +26,7 @@ from puzzle_judge import _chat, _extract_json, RATING_GUIDANCE, WIZARD_MODEL  # 
 
 _KINDS = {"move", "action", "talk", "look", "other"}
 _VERDICTS = {"success", "partial", "fail"}
+_OPS = {"open", "close", "unlock", "lock", "take", "drop", "wear", "remove", "give", "put", "use"}
 
 
 def _objective_block(quests_with_puzzles) -> str:
@@ -46,7 +47,7 @@ def _objective_block(quests_with_puzzles) -> str:
 
 
 def build_messages(text, *, location, location_desc, exits, quests_with_puzzles,
-                   canon="", rating="mature"):
+                   objects_block="", canon="", rating="mature"):
     system = (
         "You are the game master AND the parser of a dark-fantasy text MUD. You translate the "
         "player's free-form input into exactly ONE game action. The game's code is the only "
@@ -58,6 +59,7 @@ def build_messages(text, *, location, location_desc, exits, quests_with_puzzles,
         (f"WORLD TONE:\n{canon[:700]}\n\n" if canon else "")
         + f"WHERE THE PLAYER STANDS: {location}\n{location_desc}\n\n"
         + f"EXITS FROM HERE: {', '.join(exits) if exits else '(none)'}\n\n"
+        + (objects_block + "\n" if objects_block else "")
         + _objective_block(quests_with_puzzles)
         + f'\nTHE PLAYER TYPED:\n  "{text}"\n\n'
         + "Decide the single best interpretation. Reply with ONLY this JSON:\n"
@@ -65,6 +67,9 @@ def build_messages(text, *, location, location_desc, exits, quests_with_puzzles,
         '"direction": "<one of the exits, exactly> or null", '
         '"quest_id": "<one objective id> or null", '
         '"verdict": "success | partial | fail | null", '
+        '"ops": [{"op": "open|close|unlock|lock|take|drop|wear|remove|give|put|use", '
+        '"target": "<a thing listed below>", "recipient": "<who, optional>", '
+        '"container": "<where, optional>"}], '
         '"narration": "2-4 sentences, second person, in the world\'s voice, what happens"}\n\n'
         "Rules:\n"
         "- move: they want to travel a direction/place matching an exit -> set direction to that exit.\n"
@@ -78,21 +83,44 @@ def build_messages(text, *, location, location_desc, exits, quests_with_puzzles,
         "solution OR is a genuinely clever, plausible in-world alternative that achieves it; "
         "'partial' if on the right track but incomplete; 'fail' if wrong, nonsensical, or idle. "
         "If quest_id is null, set verdict null and narrate the attempt having no real effect.\n"
-        "- narration: vivid but tight; NEVER reveal solutions/ids/flags/mechanics; use no pipe "
-        "(|) characters."
+        "- ops: if the action manipulates a THING listed above (open/close/unlock a chest or "
+        "door, take/drop an item, wear/remove a garment, give/put something), list each as an "
+        "op with the thing's exact name as 'target' ('recipient' = who wears/receives it, "
+        "'container' = where to put/take). Only reference things actually listed; otherwise ops "
+        "is []. Object-manipulation and an objective attempt can both happen at once.\n"
+        "- narration: vivid but tight, and CONSISTENT with the current thing-states shown above "
+        "(don't describe opening what is already open); NEVER reveal solutions/ids/flags/"
+        "mechanics; use no pipe (|) characters."
     )
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
 
+def _clean_ops(raw_ops):
+    """Keep only well-formed ops with a known verb and a target."""
+    ops = []
+    if isinstance(raw_ops, list):
+        for o in raw_ops:
+            if not isinstance(o, dict):
+                continue
+            op = str(o.get("op", "")).lower().strip()
+            target = o.get("target")
+            if op in _OPS and isinstance(target, str) and target.strip():
+                ops.append({"op": op, "target": target.strip(),
+                            "recipient": (o.get("recipient") or None),
+                            "container": (o.get("container") or None)})
+    return ops
+
+
 def interpret(text, *, location, location_desc, exits, quests_with_puzzles,
-              canon="", rating="mature", model=WIZARD_MODEL) -> dict:
-    """Map free-form input to one normalized action. Degrades to a safe 'other' with gentle
-    flavor if the model misbehaves — never raises into the game loop."""
+              objects_block="", canon="", rating="mature", model=WIZARD_MODEL) -> dict:
+    """Map free-form input to one normalized action (+ object ops). Degrades to a safe
+    'other' with gentle flavor if the model misbehaves — never raises into the game loop."""
     try:
         raw = _chat(build_messages(
             text, location=location, location_desc=location_desc, exits=exits,
-            quests_with_puzzles=quests_with_puzzles, canon=canon, rating=rating),
-            max_tokens=800, temperature=0.5, model=model)
+            quests_with_puzzles=quests_with_puzzles, objects_block=objects_block,
+            canon=canon, rating=rating),
+            max_tokens=900, temperature=0.5, model=model)
         v = _extract_json(raw)
         kind = str(v.get("kind", "other")).lower().strip()
         if kind not in _KINDS:
@@ -108,10 +136,12 @@ def interpret(text, *, location, location_desc, exits, quests_with_puzzles,
             "direction": direction if isinstance(direction, str) else None,
             "quest_id": quest_id if isinstance(quest_id, str) else None,
             "verdict": verdict,
+            "ops": _clean_ops(v.get("ops")),
             "narration": (v.get("narration") or "").strip()
             or "Nothing here answers to that.",
         }
     except Exception as e:
         return {"kind": "other", "direction": None, "quest_id": None, "verdict": None,
+                "ops": [],
                 "narration": "The moment slips past, hazy and unformed. Try putting it another way.",
                 "_error": f"{type(e).__name__}: {e}"}

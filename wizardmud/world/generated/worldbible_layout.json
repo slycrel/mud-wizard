@@ -16,5 +16,40 @@
       "location": "crumbling_keep",
       "desc": "A robed figure wreathed in faint storm-light, watching you with ancient, knowing eyes. The keep's last warden, or its ghost. Speak with him: |wtalk The Wizard = <your words>|n."
     }
+  ],
+  "objects": [
+    {
+      "key": "rune-etched key",
+      "location": "crumbling_keep",
+      "kind": "item",
+      "desc": "A small iron key, its bow etched with a single storm-rune that catches the dim light."
+    },
+    {
+      "key": "iron chest",
+      "location": "crumbling_keep",
+      "kind": "container",
+      "locked": true,
+      "is_open": false,
+      "key_item": "rune-etched key",
+      "desc": "A banded iron chest half-buried in fallen masonry, its lockplate stamped with a storm-rune.",
+      "contains": [
+        {
+          "key": "storm-cloak",
+          "kind": "wearable",
+          "desc": "A heavy grey cloak that hums faintly, as though a sliver of the tempest is sewn into its hem."
+        },
+        {
+          "key": "tarnished amulet",
+          "kind": "item",
+          "desc": "An amulet of blackened silver, cold to the touch, its sigil worn almost smooth."
+        }
+      ]
+    },
+    {
+      "key": "guttering torch",
+      "location": "crumbling_keep",
+      "kind": "item",
+      "desc": "A pitch-soaked torch sputtering in a rusted bracket; it pulls free if you want it."
+    }
   ]
 }

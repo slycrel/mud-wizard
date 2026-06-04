@@ -21,6 +21,7 @@ from world import layout as layout_mod
 
 ROOM_TYPECLASS = "typeclasses.rooms.WorldbibleRoom"
 EXIT_TYPECLASS = "typeclasses.exits.Exit"
+OBJ_TYPECLASS = "typeclasses.objects.WorldbibleObject"
 TAG_CAT = "wb"  # tag category for everything worldinit creates (idempotency + cleanup)
 
 
@@ -108,6 +109,43 @@ class CmdWorldInit(Command):
                 created.append(obj.key)
             if npc.get("desc"):
                 obj.db.desc = npc["desc"]
+
+        # --- manipulable objects (persistent state) ---------------------
+        def spawn_object(spec, container=None):
+            """Create (or reuse) one WorldbibleObject and configure its state. If `container`
+            is given the object is placed inside it (chest contents); else in its room."""
+            loc_name = spec.get("location")
+            home = container or rooms.get(loc_name)
+            if not home:
+                return
+            ident = f"obj:{spec.get('key')}@{loc_name or (container and container.key)}"
+            obj = _existing(ident)
+            if not obj:
+                obj = create_object(OBJ_TYPECLASS, key=spec.get("key", "a thing"), location=home)
+                obj.tags.add(ident, category=TAG_CAT)
+                created.append(obj.key)
+            else:
+                if obj.location != home:
+                    obj.move_to(home, quiet=True, move_type="teleport")
+                reused.append(obj.key)
+            kind = spec.get("kind", "item")
+            if spec.get("desc"):
+                obj.db.desc = spec["desc"]
+            obj.db.wb_takeable = kind in ("item", "wearable")
+            obj.db.wb_wearable = kind == "wearable"
+            obj.db.wb_container = kind == "container"
+            obj.db.wb_fixture = kind == "fixture"
+            obj.db.wb_openable = kind in ("container", "fixture") and spec.get("openable", kind == "container")
+            obj.db.wb_is_open = bool(spec.get("is_open", False))
+            obj.db.wb_locked = bool(spec.get("locked", False))
+            obj.db.wb_key = spec.get("key_item")  # name of the item that unlocks this
+            # takeables must be gettable; fixtures/containers stay put
+            obj.locks.add("get:true()" if obj.db.wb_takeable else "get:false()")
+            for child in spec.get("contains", []):
+                spawn_object(child, container=obj)
+
+        for spec in layout.objects:
+            spawn_object(spec)
 
         # --- place the builder and brief them ---------------------------
         start_room = rooms[layout.start]

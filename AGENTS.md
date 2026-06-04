@@ -38,6 +38,8 @@ wizardmud/
 ├── typeclasses/
 │   ├── llm_openai_client.py     OpenAI chat-completions bridge for Evennia's LLM contrib
 │   ├── llm_npcs.py              OpenAINPC / WizardNPC (EVA) / ChatterNPC (Gemma)
+│   ├── objects.py               Object + WorldbibleObject (persistent open/take/wear state)
+│   ├── characters.py            Character (one-time worldbible orientation crib on login)
 │   └── rooms.py                 Room + WorldbibleRoom (reactive look via get_display_desc)
 └── world/                       # the content pipeline (pure-Python core + offline gen)
     ├── solvability.py           validator: solvable? soft-lock-free? + inert-reward lint

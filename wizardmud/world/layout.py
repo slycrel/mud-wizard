@@ -56,10 +56,13 @@ class Layout:
     rooms: dict = field(default_factory=dict)   # location -> {"name": str}
     exits: list = field(default_factory=list)    # [{"from","to","dir","back"}]
     npcs: list = field(default_factory=list)      # [{"key","typeclass","location","desc"}]
+    objects: list = field(default_factory=list)   # manipulable things (see below)
+    # objects: [{"key","location","kind": item|wearable|container|fixture, "desc",
+    #            "is_open"?, "locked"?, "key"?(unlock-item key), "contains"?: [ {nested obj} ]}]
 
     def to_dict(self):
-        return {"start": self.start, "rooms": self.rooms,
-                "exits": self.exits, "npcs": self.npcs}
+        return {"start": self.start, "rooms": self.rooms, "exits": self.exits,
+                "npcs": self.npcs, "objects": self.objects}
 
     @staticmethod
     def from_dict(d):
@@ -69,6 +72,7 @@ class Layout:
             rooms=dict(d.get("rooms", {})),
             exits=list(d.get("exits", [])),
             npcs=list(d.get("npcs", [])),
+            objects=list(d.get("objects", [])),
         )
 
     def location_order(self):
