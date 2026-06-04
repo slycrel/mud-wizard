@@ -63,6 +63,10 @@ wizardmud/
 - **Evennia runs on the pinned 3.12 venv** (`.venv`); the system Python is 3.14 and
   breaks Evennia 6. Run game commands from `wizardmud/`. The LLM contrib's `LLM_API_TYPE="openai"`
   is read-but-unused — that's why `llm_openai_client.py` exists.
+- **Run `evennia` with `.venv/bin` on PATH.** The launcher spawns `twistd` by bare
+  name, so without the venv bin on PATH the Portal/Server die with
+  "No such file or directory: 'twistd'". `mud.sh` exports it; if you invoke `evennia`
+  directly, `source ../../.venv/bin/activate` (or `export PATH=../../.venv/bin:$PATH`) first.
 - **In-game LLM calls run via `deferToThread`** so a slow model never freezes the MUD.
 - **Solvability is non-negotiable.** The critique and reactive layers must never break a
   validated graph; the critique-repair explicitly discards a fix that fails `validate()`.
