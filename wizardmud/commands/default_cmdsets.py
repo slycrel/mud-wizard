@@ -15,7 +15,7 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 """
 
 from evennia import default_cmds
-from evennia.contrib.rpg.llm.llm_npc import CmdLLMTalk
+from commands.talk_cmd import CmdTalk
 from commands.quest_cmds import CmdQuests, CmdApproach, CmdHint, CmdAttempt, CmdBypass, CmdSurvey
 from commands.image_cmds import CmdInspect, CmdIllustrate
 from commands.build_cmds import CmdWorldInit
@@ -38,7 +38,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         #
         # any commands you add below will overload the default ones.
         #
-        self.add(CmdLLMTalk())  # `talk <npc> = <message>` -> LLM-backed NPCs
+        self.add(CmdTalk())  # `talk <npc> = <message>` -> LLM-backed NPCs (fixed parser)
         # live worldbible quest/puzzle layer:
         self.add(CmdQuests())
         self.add(CmdApproach())

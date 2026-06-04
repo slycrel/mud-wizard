@@ -19,9 +19,20 @@ reports (check ``lms ps`` or the LM Studio server log). They are best-guess
 placeholders — fix them once your models are downloaded.
 """
 
+import re
+
 from evennia.contrib.rpg.llm.llm_npc import LLMNPC
 
 from typeclasses.llm_openai_client import OpenAIChatLLMClient
+
+
+def _section(md: str, heading: str) -> str:
+    """Pull the prose under a '## <heading>' section of the worldbible markdown,
+    whitespace-collapsed. Returns '' if not found."""
+    if not md:
+        return ""
+    m = re.search(rf"^#+\s*{re.escape(heading)}\s*$(.*?)(?=^#+\s|\Z)", md, re.M | re.S)
+    return " ".join(m.group(1).split()) if m else ""
 
 
 class OpenAINPC(LLMNPC):
@@ -48,29 +59,64 @@ class WizardNPC(OpenAINPC):
     llm_model = "eva-qwen2.5-32b-v0.2-mlx"  # the live in-character wizard (RP-tuned)
 
     prompt_prefix = (
-        "You are the Wizard, the game master of a text adventure world. "
-        "You are speaking with {character}, who currently stands in {location}. "
-        "Stay in character as a wise, slightly mischievous wizard. "
-        "Describe places and events vividly but in 2-4 sentences. "
-        "Never break character, never mention being an AI, and never invent "
-        "game mechanics, exits, or inventory the player does not actually have. "
-        "From here on, the conversation between the Wizard and {character} begins."
+        "You are the Wizard — the game master and guide of THIS specific dark-fantasy text "
+        "adventure, speaking with {character} in {location}. Stay in character: wise, weathered, "
+        "a little mischievous. Keep replies to 2-4 vivid sentences. Never break character and "
+        "never mention being an AI. CRUCIAL: the facts below are the only truth of this world — "
+        "do NOT invent places, exits, objects, items, NPCs, or mechanics that are not given to "
+        "you. If asked about something that does not exist here, do not pretend it does; instead "
+        "draw the seeker's attention, in character, to what truly surrounds them. Do not prefix "
+        "your reply with your name."
     )
 
     def build_prompt(self, character, speech):
-        """Inject the player's accomplishments so the Wizard reacts to their deeds
-        (the Galatea/Fallen-London 'world acknowledges what you've done' pattern)."""
+        """Ground the Wizard in the validated worldbible — its setting, the player's current
+        reactive surroundings, the quests open to them, and their deeds — so it speaks about
+        THIS world (not generic fantasy) and steers the player to the real commands. The facts
+        are appended last (closest to generation) for strongest adherence. State stays
+        authoritative in code; this only narrates."""
         prompt = super().build_prompt(character, speech)
+        brief = self._world_brief(character)
+        return f"{prompt}\n\n[The truth of this world — speak only of this:]\n{brief}" if brief else prompt
+
+    def _world_brief(self, character):
         try:
+            from commands.quest_cmds import get_wb
             from world.worldbible_loader import Progress
-            p = Progress.from_dict(character.attributes.get("progress", default=None))
-            if p.done:
-                deeds = ", ".join(sorted(p.done))
-                prompt = (f"(The one you speak with has accomplished: {deeds}. "
-                          "Acknowledge their deeds naturally if it fits.)\n" + prompt)
+            wb = get_wb()
         except Exception:
-            pass
-        return prompt
+            return ""
+        p = Progress.from_dict(character.attributes.get("progress", default=None))
+        if not p.flags and not p.done:
+            p.flags = set(wb.world.start)
+
+        lines = []
+        setting = _section(wb.canon, "Tone & Setting")
+        if setting:
+            lines.append("SETTING: " + setting)
+
+        loc = getattr(getattr(character, "location", None), "db", None)
+        wb_loc = loc.wb_location if loc else None
+        if wb_loc:
+            txt = wb.location_text(wb_loc, p)
+            if txt:
+                lines.append(f"WHERE THEY STAND ({character.location.key}): {txt}")
+
+        avail = wb.available(p)
+        if avail:
+            lines.append("OPEN TO THEM NOW (guide toward these): "
+                         + "; ".join(f"{q.id} — {q.summary}" for q in avail[:5]))
+        if p.done:
+            lines.append("ALREADY ACCOMPLISHED (acknowledge if it fits): " + ", ".join(sorted(p.done)))
+
+        lines.append(
+            "HOW THEY ACT: the seeker progresses with the commands 'quests', 'approach <quest>', "
+            "'attempt <quest> = <what they do>', 'hint <quest>', 'survey', 'look', and by walking "
+            "the exits. They cannot 'take' or 'use' arbitrary things — when they seem lost, nudge "
+            "them (in character) toward a quest or one of these commands. Do not output pipe (|) "
+            "characters."
+        )
+        return "\n".join(lines)
 
 
 class ChatterNPC(OpenAINPC):
