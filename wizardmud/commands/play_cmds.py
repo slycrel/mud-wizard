@@ -22,7 +22,7 @@ from evennia import Command, syscmdkeys
 from twisted.internet import threads
 
 from world import interpreter as interp
-from world import puzzle_judge
+from world import objgoal
 from commands.quest_cmds import get_wb, get_progress, save_progress, _rating
 
 _MOVE_VERBS = {"go", "walk", "head", "move", "travel", "run", "wander", "proceed", "venture"}
@@ -199,6 +199,34 @@ class CmdInterpret(Command):
             # "use": no state change beyond narration
         return notes
 
+    def _object_snapshot(self, caller):
+        """A pure state dict of every thing the player can perceive/carry, for object_goal
+        evaluation (world/objgoal.py)."""
+        snap = {}
+        loc = caller.location
+
+        def add(o, in_room):
+            snap[o.key.lower()] = {
+                "exists": True,
+                "open": bool(o.db.wb_is_open),
+                "locked": bool(o.db.wb_locked),
+                "held": (o.location == caller) and not o.db.wb_worn_by,
+                "worn": o.db.wb_worn_by == caller,
+                "in_room": in_room,
+            }
+
+        for o in (loc.contents if loc else []):
+            if self._is_wb_obj(o):
+                add(o, True)
+                if o.db.wb_container:
+                    for c in o.contents:
+                        if self._is_wb_obj(c):
+                            add(c, False)
+        for o in caller.contents:
+            if self._is_wb_obj(o):
+                add(o, False)
+        return snap
+
     def _match_exit(self, raw, loc):
         """Map 'go south' / 'head to the marsh' / 'the whispering marsh' to a real exit."""
         words = raw.lower().strip(" .!,").split()
@@ -234,27 +262,44 @@ class CmdInterpret(Command):
                 return
 
         wb, p = get_wb(), get_progress(caller)
+        loc = caller.location
+        wb_loc = getattr(loc.db, "wb_location", None) if loc else None
         # apply persistent object-state changes BEFORE narrating the outcome
         notes = self._apply_ops(caller, result.get("ops") or [])
         caller.msg(f"|y{narration}|n")
         for note in notes:
             caller.msg(f"|x{note}|n")
+
+        # Path 1 — freeform judge: the interpreter ruled on a clever in-world attempt.
         qid, verdict = result.get("quest_id"), result.get("verdict")
         if kind == "action" and qid and wb.quest(qid) and qid not in p.done:
             q = wb.quest(qid)
             if verdict == "success" and (q.requires <= p.flags):
-                wb.complete(p, qid, via="action")
-                caller.msg("|g  ~ something shifts; the way forward widens ~|n")
+                if wb.complete(p, qid, via="action"):
+                    caller.msg("|g  ~ something shifts; the way forward widens ~|n")
             elif verdict == "fail":
                 wb.record_fail(p, qid)
                 if wb.bypass_available(p, qid):
                     # guaranteed no-dead-end: after repeated failure, an alternative opens.
-                    # Use the puzzle's authored reward flavor (no extra LLM call on the reactor).
                     alt = wb.puzzle(qid).get("reward_flavor") or \
                         "A chance turn of events carries you past the impasse."
-                    wb.complete(p, qid, via="bypass")
-                    caller.msg(f"|c{alt}|n\n|g  ~ aided by fortune, you press on ~|n")
+                    if wb.complete(p, qid, via="bypass"):
+                        caller.msg(f"|c{alt}|n\n|g  ~ aided by fortune, you press on ~|n")
             # 'partial' → no state change; narration already signals you're close
-            if wb.is_won(p):
-                caller.msg("|gThe tale reaches its end — you have decided the keep's fate.|n")
+
+        # Path 2 — mechanical: any objective here whose object_goal is now satisfied completes,
+        # no matter how the player got the objects into that state. Same validated flags.
+        snap = self._object_snapshot(caller)
+        for q in wb.available(p):
+            if wb_loc and q.location != wb_loc:
+                continue
+            goal = wb.puzzle(q.id).get("object_goal")
+            if goal and q.id not in p.done and objgoal.evaluate(goal, snap):
+                if wb.complete(p, q.id, via="objects"):
+                    caller.msg("|g  ~ "
+                               + (wb.puzzle(q.id).get("reward_flavor") or "the way forward widens")
+                               + " ~|n")
+
+        if wb.is_won(p):
+            caller.msg("|gThe tale reaches its end — you have decided the keep's fate.|n")
         save_progress(caller, p)

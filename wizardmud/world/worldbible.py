@@ -374,7 +374,7 @@ def run_layout_stage(gen_dir=OUTDIR, force=False):
     generated world playable instead of dropping the player into empty Limbo."""
     import layout as layout_mod
     from worldbible_loader import Worldbible
-    print(f"\n[7/7] Scene manifest (walkable layout) …", flush=True)
+    print(f"\n[7/8] Scene manifest (walkable layout) …", flush=True)
     path = os.path.join(gen_dir, layout_mod.LAYOUT_FILE)
     if os.path.exists(path) and not force:
         try:
@@ -394,7 +394,7 @@ def run_layout_stage(gen_dir=OUTDIR, force=False):
 
 def run_reactions_stage(canon, quests):
     """Generate, lint (fragments must gate on real flags), and save reactive world text."""
-    print(f"\n[6/7] Reactive world text via {MODEL} …", flush=True)
+    print(f"\n[6/8] Reactive world text via {MODEL} …", flush=True)
     try:
         reactions = generate_reactions(canon, quests)
     except (json.JSONDecodeError, KeyError) as e:
@@ -421,6 +421,102 @@ def run_reactions_stage(canon, quests):
               flush=True)
 
 
+OBJECTS_SPEC = (
+    "Return ONLY JSON of this shape:\n"
+    '{\n'
+    '  "objects": [\n'
+    '    {"key": "iron chest", "location": "<a location id>", "kind": "container", '
+    '"desc": "...", "locked": true, "is_open": false, "key_item": "rune-etched key", '
+    '"contains": [ {"key":"storm-cloak","kind":"wearable","desc":"..."} ]},\n'
+    '    {"key": "rune-etched key", "location": "<a location id>", "kind": "item", "desc": "..."}\n'
+    '  ],\n'
+    '  "object_goals": { "<quest id>": {"all": [ {"obj":"iron chest","is":"open"}, '
+    '{"obj":"storm-cloak","is":"held"} ]} }\n'
+    "}\n"
+    "kind is one of: item (takeable), wearable (takeable+wearable), container (holds things, "
+    "openable), fixture (immovable feature like a door/lever). 'is' is one of: open, closed, "
+    "locked, unlocked, held, worn, in_room. RULES: (1) place objects only in the given location "
+    "ids; (2) for EACH non-optional quest, give an object_goal its location's objects can satisfy, "
+    "coherent with that quest's puzzle solution; (3) make the path reachable — anything required "
+    "'held'/'worn' must be a takeable/wearable object, and any locked container required 'open' "
+    "must have a key_item that is itself a takeable object placed within reach; (4) keep everything "
+    "consistent with the canon."
+)
+
+
+def generate_objects(canon, quests, puzzles):
+    """Co-design tangible objects per location AND an object_goal per main quest, grounding the
+    puzzles in concrete, manipulable things. Returns {'objects': [...], 'object_goals': {...}}."""
+    locs = sorted({q.get("location") for q in quests.get("quests", []) if q.get("location")})
+    qlines = []
+    for q in quests.get("quests", []):
+        pz = puzzles.get(q["id"], {})
+        opt = " (optional)" if q.get("optional") else ""
+        qlines.append(f"- {q['id']} @ {q.get('location')}{opt}: {q.get('summary','')}\n"
+                      f"    puzzle: {pz.get('setup','')} {pz.get('challenge','')}\n"
+                      f"    intended solution: {pz.get('solution','')}")
+    msgs = [
+        {"role": "system", "content": (
+            "You are the worldbuilder for a dark-fantasy text MUD. You design tangible, "
+            "manipulable OBJECTS that populate locations and GROUND each quest's puzzle in "
+            "concrete things the player can open, take, and wear — and you specify, per quest, "
+            "the object state(s) that mean it is solved."
+        )},
+        {"role": "user", "content": (
+            f"World canon:\n{canon[:1500]}\n\n"
+            f"Location ids: {', '.join(locs)}\n\n"
+            f"Quests and their puzzles:\n" + "\n".join(qlines) + "\n\n" + OBJECTS_SPEC
+        )},
+    ]
+    return extract_json(chat(msgs, max_tokens=9000, temperature=0.7))
+
+
+def apply_objects_result(result, gen_dir=None):
+    """Write generated objects into the layout manifest and merge object_goals into the puzzles
+    file; return (n_objects, n_goals, lint_warnings). Pure file IO (no LLM) so it unit-tests."""
+    import layout as layout_mod
+    import objgoal
+    gen_dir = gen_dir or OUTDIR
+    objects = result.get("objects") or []
+    goals = result.get("object_goals") or {}
+
+    lpath = os.path.join(gen_dir, layout_mod.LAYOUT_FILE)
+    if os.path.exists(lpath):
+        lay = layout_mod.Layout.from_dict(json.load(open(lpath)))
+    else:
+        lay = layout_mod.load_or_derive(Worldbible.load(gen_dir), gen_dir)
+    lay.objects = objects
+    layout_mod.write_layout(lay, gen_dir)
+
+    ppath = os.path.join(gen_dir, "worldbible_puzzles.json")
+    puzzles = json.load(open(ppath)) if os.path.exists(ppath) else {}
+    for qid, goal in goals.items():
+        if qid in puzzles:
+            puzzles[qid]["object_goal"] = goal
+    with open(ppath, "w") as f:
+        json.dump(puzzles, f, indent=2)
+
+    return len(objects), len(goals), objgoal.lint(goals, objects)
+
+
+def run_objects_stage(canon, quests, puzzles):
+    """Generate object-aware puzzles: tangible objects + per-quest object_goals (the hybrid)."""
+    print(f"\n[8/8] Object-aware puzzles via {MODEL} …", flush=True)
+    try:
+        result = generate_objects(canon, quests, puzzles)
+    except (json.JSONDecodeError, KeyError) as e:
+        print(f"      objects returned invalid JSON ({e}); skipped (objects stay sandbox)", flush=True)
+        return
+    if not isinstance(result, dict) or not result.get("objects"):
+        print("      no objects produced", flush=True)
+        return
+    n_obj, n_goals, warns = apply_objects_result(result, OUTDIR)
+    print(f"      {n_obj} objects -> generated/worldbible_layout.json; "
+          f"{n_goals} object_goals merged into worldbible_puzzles.json", flush=True)
+    for w in warns:
+        print(f"      lint: {w}", flush=True)
+
+
 def main():
     ap = argparse.ArgumentParser(description="Generate, validate, and critique a world bible.")
     ap.add_argument("theme", nargs="?",
@@ -443,6 +539,10 @@ def main():
                     help="emit the walkable scene manifest (rooms/exits/NPC placement)")
     ap.add_argument("--layout-only", action="store_true",
                     help="skip generation; (re)emit the layout for existing generated/ files")
+    ap.add_argument("--objects", action=argparse.BooleanOptionalAction, default=True,
+                    help="co-design tangible objects + per-quest object_goals (object-aware puzzles)")
+    ap.add_argument("--objects-only", action="store_true",
+                    help="skip generation; (re)author objects/object_goals for existing files")
     args = ap.parse_args()
     os.makedirs(OUTDIR, exist_ok=True)
 
@@ -466,6 +566,15 @@ def main():
     if args.layout_only:
         print(f"Emitting scene manifest for existing content in {OUTDIR} …", flush=True)
         run_layout_stage(force=True)
+        return 0
+
+    if args.objects_only:
+        prose = open(os.path.join(OUTDIR, "worldbible.md")).read()
+        quests = json.load(open(os.path.join(OUTDIR, "worldbible_quests.json")))
+        ppath = os.path.join(OUTDIR, "worldbible_puzzles.json")
+        puzzles = json.load(open(ppath)) if os.path.exists(ppath) else {}
+        print(f"Authoring object-aware puzzles for existing content in {OUTDIR} …", flush=True)
+        run_objects_stage(prose, quests, puzzles)
         return 0
 
     system = (
@@ -541,6 +650,9 @@ def main():
 
     if args.layout:
         run_layout_stage()
+
+    if args.objects:
+        run_objects_stage(prose, quests, puzzles)
 
     return 0 if final.ok else 1
 

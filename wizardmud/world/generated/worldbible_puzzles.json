@@ -8,7 +8,13 @@
       "Notice that certain glyphs glow faintly under moonlight.",
       "The tapestry's depiction of a storm mirrors the keep's constant besieger."
     ],
-    "reward_flavor": "Discovery of an ancient tome revealing the keep's forgotten lore."
+    "reward_flavor": "Discovery of an ancient tome revealing the keep's forgotten lore.",
+    "object_goal": {
+      "all": [
+        { "obj": "iron chest", "is": "open" },
+        { "obj": "tarnished amulet", "is": "held" }
+      ]
+    }
   },
   "gather_artifacts": {
     "type": "search",

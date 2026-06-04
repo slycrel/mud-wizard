@@ -447,8 +447,18 @@ NPC) and it *stays* worn.
   a fixture won't be taken) and emits a corrective note if the model overreaches. Object play is
   free sandbox; quest flags/win remain the spine, and the two can advance in the same turn.
 
-Future: a generator stage (like `--layout`) to author objects per location from canon, instead of by
-hand.
+**Object-aware puzzles (the hybrid).** Generation co-designs objects *with* quests: the `[8/8]`
+objects stage (`worldbible.py --objects`, `world/objgoal.py`) asks the author model for tangible
+objects per location AND a per-quest `object_goal` — a checkable condition over object states (e.g.
+`chest open AND amulet held`) that grounds the puzzle. It writes objects into the layout and merges
+`object_goal`s into `worldbible_puzzles.json`, then **lints reachability** (the key for a locked chest
+must exist and be takeable) so the generated mechanical path is solvable.
+
+At runtime a quest completes by **either** path, both granting the same validated flags:
+- **Mechanical** — `commands/play_cmds.py` snapshots object state after each turn's ops and, if a
+  local quest's `object_goal` is satisfied, completes it (no matter how you got there).
+- **Freeform** — the interpreter judges a clever in-world attempt as success.
+And the stuck→bypass net still guarantees no dead end. `objgoal.evaluate`/`lint` are pure + unit-tested.
 
 ## 9. Design rule
 

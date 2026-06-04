@@ -43,13 +43,14 @@ wizardmud/
 │   └── rooms.py                 Room + WorldbibleRoom (reactive look via get_display_desc)
 └── world/                       # the content pipeline (pure-Python core + offline gen)
     ├── solvability.py           validator: solvable? soft-lock-free? + inert-reward lint
-    ├── worldbible.py            offline gen: prose→quests→validate→puzzles→critique→reactions→layout
+    ├── worldbible.py            offline gen: prose→quests→validate→puzzles→critique→reactions→layout→objects
     ├── worldbible_loader.py     runtime: load generated/, per-player Progress, location_text
     ├── puzzle_judge.py          hybrid attempt judging + stuck-bypass narration (EVA)
     ├── image_gen.py             Draw Things txt2img + render profiles
     ├── reactive.py              flag-gated content resolver (compose)
-    ├── interpreter.py           NL parser-over-state: free text -> {kind, quest_id, verdict, narration}
-    ├── layout.py                scene manifest: rooms/exits/NPC placement (derive or load file)
+    ├── interpreter.py           NL parser-over-state: free text -> {kind, quest_id, verdict, ops, narration}
+    ├── objgoal.py               object_goal eval + reachability lint (object-aware puzzle completion)
+    ├── layout.py                scene manifest: rooms/exits/NPC placement + objects (derive or load file)
     ├── test_*.py                unittest suites (no network/Evennia needed)
     └── generated/               worldbible.md, *_quests.json, *_puzzles.json,
                                  *_critique.json, *_reactions.json, *_layout.json
@@ -93,7 +94,9 @@ Validate any generated arc: `../../.venv/bin/python solvability.py generated/wor
 #                         # (idempotent — safe to re-run; objects are tagged category 'wb')
 # offline content authoring (needs Hermes + the Qwen critic loaded in LM Studio):
 cd wizardmud/world && ../../.venv/bin/python worldbible.py "<seed>" --rating mature
-#   --critique-only / --reactions-only / --layout-only re-run just that stage
-#   the [7/7] layout stage emits generated/worldbible_layout.json (deterministic; preserves
-#   an authored file). Edit that file for canon-accurate exit directions / NPC placement.
+#   --critique-only / --reactions-only / --layout-only / --objects-only re-run just that stage
+#   [7/8] layout -> generated/worldbible_layout.json (deterministic; preserves an authored file)
+#   [8/8] objects -> co-designs tangible objects + per-quest object_goals (object-aware puzzles),
+#         writing objects into the layout and merging object_goals into worldbible_puzzles.json.
+#   A quest completes EITHER mechanically (its object_goal is met) OR via the freeform LLM judge.
 ```
