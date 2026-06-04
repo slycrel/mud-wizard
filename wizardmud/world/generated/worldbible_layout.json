@@ -1,0 +1,20 @@
+{
+  "start": "crumbling_keep",
+  "rooms": {
+    "crumbling_keep": { "name": "The Crumbling Keep" },
+    "storm_wracked_coast": { "name": "The Storm-Wracked Coast" },
+    "whispering_marsh": { "name": "The Whispering Marsh" }
+  },
+  "exits": [
+    { "from": "crumbling_keep", "to": "whispering_marsh", "dir": "south", "back": "north" },
+    { "from": "crumbling_keep", "to": "storm_wracked_coast", "dir": "west", "back": "east" }
+  ],
+  "npcs": [
+    {
+      "key": "The Wizard",
+      "typeclass": "typeclasses.llm_npcs.WizardNPC",
+      "location": "crumbling_keep",
+      "desc": "A robed figure wreathed in faint storm-light, watching you with ancient, knowing eyes. The keep's last warden, or its ghost. Speak with him: |wtalk The Wizard = <your words>|n."
+    }
+  ]
+}

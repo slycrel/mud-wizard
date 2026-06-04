@@ -31,20 +31,23 @@ wizardmud/
 ├── commands/
 │   ├── default_cmdsets.py       registers all custom commands
 │   ├── quest_cmds.py            quests/approach/hint/attempt/bypass/survey
-│   └── image_cmds.py            inspect / illustrate (+ illustrate() helper)
+│   ├── image_cmds.py            inspect / illustrate (+ illustrate() helper)
+│   └── build_cmds.py            worldinit: materialize the worldbible into rooms/exits/NPCs
 ├── typeclasses/
 │   ├── llm_openai_client.py     OpenAI chat-completions bridge for Evennia's LLM contrib
-│   └── llm_npcs.py              OpenAINPC / WizardNPC (EVA) / ChatterNPC (Gemma)
+│   ├── llm_npcs.py              OpenAINPC / WizardNPC (EVA) / ChatterNPC (Gemma)
+│   └── rooms.py                 Room + WorldbibleRoom (reactive look via get_display_desc)
 └── world/                       # the content pipeline (pure-Python core + offline gen)
     ├── solvability.py           validator: solvable? soft-lock-free? + inert-reward lint
-    ├── worldbible.py            offline gen: prose→quests→validate→puzzles→critique→reactions
+    ├── worldbible.py            offline gen: prose→quests→validate→puzzles→critique→reactions→layout
     ├── worldbible_loader.py     runtime: load generated/, per-player Progress, location_text
     ├── puzzle_judge.py          hybrid attempt judging + stuck-bypass narration (EVA)
     ├── image_gen.py             Draw Things txt2img + render profiles
     ├── reactive.py              flag-gated content resolver (compose)
+    ├── layout.py                scene manifest: rooms/exits/NPC placement (derive or load file)
     ├── test_*.py                unittest suites (no network/Evennia needed)
     └── generated/               worldbible.md, *_quests.json, *_puzzles.json,
-                                 *_critique.json, *_reactions.json
+                                 *_critique.json, *_reactions.json, *_layout.json
 ```
 
 ## Conventions & gotchas (a local model WILL get these wrong otherwise)
@@ -80,7 +83,12 @@ Validate any generated arc: `../../.venv/bin/python solvability.py generated/wor
 ## How to run / generate
 ```bash
 ./mud.sh start            # LM Studio (EVA) + Evennia; play at localhost:4001
+# In-game, ONCE per world (builder): turn the generated content into a walkable map
+#   worldinit             # builds rooms/exits/NPCs from generated/, drops you at the start
+#                         # (idempotent — safe to re-run; objects are tagged category 'wb')
 # offline content authoring (needs Hermes + the Qwen critic loaded in LM Studio):
 cd wizardmud/world && ../../.venv/bin/python worldbible.py "<seed>" --rating mature
-#   --critique-only / --reactions-only re-run just those stages on existing content
+#   --critique-only / --reactions-only / --layout-only re-run just that stage
+#   the [7/7] layout stage emits generated/worldbible_layout.json (deterministic; preserves
+#   an authored file). Edit that file for canon-accurate exit directions / NPC placement.
 ```

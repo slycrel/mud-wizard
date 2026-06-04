@@ -18,6 +18,7 @@ from evennia import default_cmds
 from evennia.contrib.rpg.llm.llm_npc import CmdLLMTalk
 from commands.quest_cmds import CmdQuests, CmdApproach, CmdHint, CmdAttempt, CmdBypass, CmdSurvey
 from commands.image_cmds import CmdInspect, CmdIllustrate
+from commands.build_cmds import CmdWorldInit
 
 
 class CharacterCmdSet(default_cmds.CharacterCmdSet):
@@ -48,6 +49,8 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         # image visualization (Draw Things):
         self.add(CmdInspect())
         self.add(CmdIllustrate())
+        # world bootstrap (builder): materialize the worldbible into rooms/exits/NPCs
+        self.add(CmdWorldInit())
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):

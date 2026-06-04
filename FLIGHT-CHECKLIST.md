@@ -54,12 +54,17 @@ evennia migrate                      # already validated during setup
 evennia start                        # create the superuser when prompted
 ```
 - Web client: <http://localhost:4001>   ·   Telnet/MUD client: `localhost:4000`
-- Spawn the wizard and talk to it:
+- **Raise the world (once, builder):** a fresh login is empty default Limbo — run
   ```
-  create/drop The Wizard:typeclasses.llm_npcs.WizardNPC
+  worldinit
+  ```
+  to materialize the generated worldbible into walkable rooms + exits + the Wizard and
+  drop you at the start. Then `quests`, move via exits (`south`/`west`), and `look`
+  (descriptions are reactive). The Wizard is now standing in the keep:
+  ```
   talk The Wizard = where am I?
   ```
-- Spawn an ambient NPC on the small model:
+- (optional) Spawn an extra ambient NPC on the small model:
   ```
   create/drop Old Gus:typeclasses.llm_npcs.ChatterNPC
   set Old Gus/desc = a grizzled tavern keeper

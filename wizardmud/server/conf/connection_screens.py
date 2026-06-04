@@ -26,15 +26,18 @@ from evennia import utils
 
 CONNECTION_SCREEN = """
 |b==============================================================|n
- Welcome to |g{}|n, version {}!
+ |gThe Keep of the Withering Storm|n  ·  {} v{}
 
- If you have an existing account, connect to it by typing:
-      |wconnect <username> <password>|n
- If you need to create an account, type (without the <>'s):
-      |wcreate <username> <password>|n
+ Thunder gnaws at a ruined keep on a storm-wracked coast. Its
+ magic is failing, and the tempest is winning. Step in and
+ decide its fate.
 
- If you have spaces in your username, enclose it in quotes.
- Enter |whelp|n for more info. |wlook|n will re-show this screen.
+ Returning?  |wconnect <username> <password>|n
+ New here?   |wcreate <username> <password>|n   (no <>'s)
+
+ Spaces in your name? Wrap it in quotes. |whelp|n for more;
+ |wlook|n re-shows this screen.
+ |xBuilders: run |wworldinit|x once to raise the world, then |wquests|x.|n
 |b==============================================================|n""".format(
     settings.SERVERNAME, utils.get_evennia_version("short")
 )

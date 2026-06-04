@@ -365,9 +365,36 @@ def generate_reactions(canon, quests):
     return extract_json(chat(msgs, max_tokens=9000, temperature=0.7))
 
 
+def run_layout_stage(gen_dir=OUTDIR, force=False):
+    """Emit the *walkable scene manifest* (world/layout.py) so the generated world can be
+    dived into in-game — the `worldinit` builder command materializes it into rooms, exits,
+    and NPC placements. Deterministic (no LLM): derives a connected hub-and-spoke map from
+    the validated worldbible, with the Wizard at the start. Preserves an existing authored
+    layout (hand-tuned geography/NPCs) unless force=True. This is what makes a freshly
+    generated world playable instead of dropping the player into empty Limbo."""
+    import layout as layout_mod
+    from worldbible_loader import Worldbible
+    print(f"\n[7/7] Scene manifest (walkable layout) …", flush=True)
+    path = os.path.join(gen_dir, layout_mod.LAYOUT_FILE)
+    if os.path.exists(path) and not force:
+        try:
+            lay = layout_mod.Layout.from_dict(json.load(open(path)))
+            print(f"      kept authored {layout_mod.LAYOUT_FILE} "
+                  f"(start={lay.start}, {len(lay.rooms)} rooms, {len(lay.exits)} exits)", flush=True)
+            return
+        except Exception as e:
+            print(f"      existing layout unreadable ({e}); regenerating", flush=True)
+    wb = Worldbible.load(gen_dir)
+    lay = layout_mod.derive_layout(wb)
+    layout_mod.write_layout(lay, gen_dir)
+    print(f"      derived -> generated/{layout_mod.LAYOUT_FILE} "
+          f"(start={lay.start}, {len(lay.rooms)} rooms, {len(lay.exits)} exits, "
+          f"{len(lay.npcs)} npc) — edit for canon-accurate geography/NPC placement", flush=True)
+
+
 def run_reactions_stage(canon, quests):
     """Generate, lint (fragments must gate on real flags), and save reactive world text."""
-    print(f"\n[6/6] Reactive world text via {MODEL} …", flush=True)
+    print(f"\n[6/7] Reactive world text via {MODEL} …", flush=True)
     try:
         reactions = generate_reactions(canon, quests)
     except (json.JSONDecodeError, KeyError) as e:
@@ -412,6 +439,10 @@ def main():
                     help="generate reactive per-location world text (flag-gated)")
     ap.add_argument("--reactions-only", action="store_true",
                     help="skip generation; produce reactions for existing generated/ files")
+    ap.add_argument("--layout", action=argparse.BooleanOptionalAction, default=True,
+                    help="emit the walkable scene manifest (rooms/exits/NPC placement)")
+    ap.add_argument("--layout-only", action="store_true",
+                    help="skip generation; (re)emit the layout for existing generated/ files")
     args = ap.parse_args()
     os.makedirs(OUTDIR, exist_ok=True)
 
@@ -430,6 +461,11 @@ def main():
         quests = json.load(open(os.path.join(OUTDIR, "worldbible_quests.json")))
         print(f"Generating reactive world text for existing content in {OUTDIR} …", flush=True)
         run_reactions_stage(prose, quests)
+        return 0
+
+    if args.layout_only:
+        print(f"Emitting scene manifest for existing content in {OUTDIR} …", flush=True)
+        run_layout_stage(force=True)
         return 0
 
     system = (
@@ -502,6 +538,9 @@ def main():
 
     if args.reactions:
         run_reactions_stage(prose, quests)
+
+    if args.layout:
+        run_layout_stage()
 
     return 0 if final.ok else 1
 

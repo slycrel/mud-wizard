@@ -57,11 +57,20 @@ Bump it higher for big coding sessions: `CODER_CTX=65536 ./mud.sh start`.
 
 ## Play commands (in-game, as the superuser/builder)
 
-Spawn the wizard + an ambient NPC, then talk:
+**First, raise the world.** A fresh login lands in empty default Limbo — run this once
+(builder-only) to materialize the generated worldbible into walkable rooms, exits, and the
+Wizard, and drop you at the start with an intro:
 ```
-create/drop The Wizard:typeclasses.llm_npcs.WizardNPC
+worldinit          # builds rooms/exits/NPCs from world/generated/ (safe to re-run)
+```
+Then move around with the usual exits (`south`, `west`, …) — `look` shows each location's
+**reactive** description (it changes as you complete quests). Talk to the Wizard who's now
+standing in the keep:
+```
 talk The Wizard = where am I?
-
+```
+Want an ambient NPC too?
+```
 create/drop Old Gus:typeclasses.llm_npcs.ChatterNPC
 set Old Gus/desc = a grizzled tavern keeper
 talk Old Gus = got any rumors?
@@ -103,10 +112,17 @@ mud-wizard/
 ├── FLIGHT-CHECKLIST.md          # offline test steps
 └── wizardmud/                   # the Evennia game (Python 3.12 venv in ../.venv)
     ├── server/conf/settings.py  # LLM_* settings block
-    ├── commands/default_cmdsets.py   # adds the `talk` command
-    └── typeclasses/
-        ├── llm_openai_client.py # OpenAI chat-completions bridge (verified working)
-        └── llm_npcs.py          # WizardNPC + ChatterNPC
+    ├── commands/
+    │   ├── default_cmdsets.py   # registers talk / quests / worldinit / inspect …
+    │   ├── quest_cmds.py        # quests/approach/hint/attempt/bypass/survey
+    │   └── build_cmds.py        # worldinit — builds the walkable world from the worldbible
+    ├── typeclasses/
+    │   ├── llm_openai_client.py # OpenAI chat-completions bridge (verified working)
+    │   ├── llm_npcs.py          # WizardNPC + ChatterNPC
+    │   └── rooms.py             # WorldbibleRoom (reactive look)
+    └── world/
+        ├── layout.py            # scene manifest (rooms/exits/NPC placement)
+        └── generated/           # the playable content, incl. worldbible_layout.json
 ```
 
 ## How it hangs together

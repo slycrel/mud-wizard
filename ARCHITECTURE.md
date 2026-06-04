@@ -372,6 +372,31 @@ match the player's flags:
 Same shape as everything else: a deterministic resolver (pure, tested), content generated offline,
 composed at runtime from authoritative flags.
 
+## 8d. World materialization — the walkable layer
+✅ **built** — `world/layout.py`, worldbible `--layout`, `WorldbibleRoom`, the `worldinit` builder command
+
+The quest graph and reactive text describe *what* the world contains; this turns it into somewhere
+you can actually **walk into**. Without it a fresh login lands in empty default Limbo with none of
+the generated content wired in — the "we should bootstrap the dive better" gap.
+
+- **Scene manifest** (`world/layout.py`): a `Layout` of `{start, rooms, exits, npcs}`. Either
+  authored as `generated/worldbible_layout.json` (hand/LLM-tuned: canon-accurate exit directions,
+  room names, NPC placement) **or** `derive_layout(wb)` — a deterministic, no-LLM fallback that
+  builds a connected hub-and-spoke map (start room ↔ every other location) with the Wizard at the
+  start. So *any* generated world is walkable even with no layout file.
+- **Part of generation** (`worldbible.py --layout`, step `[7/7]`): every generation run emits the
+  manifest. It **preserves** an existing authored layout (your hand edits survive a re-gen) and
+  only derives one when absent; `--layout-only` re-derives on demand.
+- **Materialized in-game** by the `worldinit` builder command (`commands/build_cmds.py`): creates a
+  `WorldbibleRoom` per location, bidirectional exits, and the NPCs, then drops the builder in the
+  start room with an in-character intro + command crib. **Idempotent** — every object is tagged
+  (category `wb`) and reused on re-run, so it repairs/extends rather than duplicating.
+- **Reactive rooms** (`WorldbibleRoom.get_display_desc`): plain `look` composes the same flag-gated
+  location text as `survey`, so the room visibly evolves as you complete quests.
+
+Still the golden rule: the layout only places *scenery*. Flags, win state, and progression stay in
+the validated graph — `worldinit` never invents mechanics.
+
 ## 9. Design rule
 
 > **Game *state* is authoritative in Evennia's DB. The LLM only *narrates and
