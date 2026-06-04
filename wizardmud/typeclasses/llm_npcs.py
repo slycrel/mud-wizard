@@ -110,10 +110,10 @@ class WizardNPC(OpenAINPC):
             lines.append("ALREADY ACCOMPLISHED (acknowledge if it fits): " + ", ".join(sorted(p.done)))
 
         lines.append(
-            "HOW THEY ACT: the seeker progresses with the commands 'quests', 'approach <quest>', "
-            "'attempt <quest> = <what they do>', 'hint <quest>', 'survey', 'look', and by walking "
-            "the exits. They cannot 'take' or 'use' arbitrary things — when they seem lost, nudge "
-            "them (in character) toward a quest or one of these commands. Do not output pipe (|) "
+            "HOW THEY ACT: the seeker plays by simply describing what they do, in plain words "
+            "(e.g. 'search the library for a hidden way', 'go south'). When they seem lost, guide "
+            "them — in character — toward what they might attempt here or where they might go, "
+            "framed as deeds to do, never as game commands or menus. Do not output pipe (|) "
             "characters."
         )
         return "\n".join(lines)

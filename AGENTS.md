@@ -30,7 +30,9 @@ wizardmud/
 ├── web/urls.py                  serves generated images at /media/
 ├── commands/
 │   ├── default_cmdsets.py       registers all custom commands
-│   ├── quest_cmds.py            quests/approach/hint/attempt/bypass/survey
+│   ├── play_cmds.py             CMD_NOMATCH catch-all: free text -> one interpreted action
+│   ├── quest_cmds.py            quests/approach/hint/attempt/bypass/survey (now advanced/debug)
+│   ├── talk_cmd.py              CmdTalk: fixed-parser talk to LLM NPCs
 │   ├── image_cmds.py            inspect / illustrate (+ illustrate() helper)
 │   └── build_cmds.py            worldinit: materialize the worldbible into rooms/exits/NPCs
 ├── typeclasses/
@@ -44,6 +46,7 @@ wizardmud/
     ├── puzzle_judge.py          hybrid attempt judging + stuck-bypass narration (EVA)
     ├── image_gen.py             Draw Things txt2img + render profiles
     ├── reactive.py              flag-gated content resolver (compose)
+    ├── interpreter.py           NL parser-over-state: free text -> {kind, quest_id, verdict, narration}
     ├── layout.py                scene manifest: rooms/exits/NPC placement (derive or load file)
     ├── test_*.py                unittest suites (no network/Evennia needed)
     └── generated/               worldbible.md, *_quests.json, *_puzzles.json,

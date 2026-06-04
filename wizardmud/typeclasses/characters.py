@@ -33,9 +33,9 @@ class Character(ObjectParent, DefaultCharacter):
             self.db._wb_oriented = True
             self.msg(
                 "\n|cThe Wizard's voice settles around you:|n \"You stand within the tale. "
-                "The world remembers what you do — so |wact|n.\"\n"
-                "|wTry:|n  |wquests|n (what you can pursue)  ·  |wapproach <quest>|n  ·  "
-                "|wattempt <quest> = <what you do>|n  ·  |whint <quest>|n  ·  |wsurvey|n  ·  "
-                "|wlook|n  ·  walk the exits (|wsouth|n, |wwest|n…)  ·  "
-                "|wtalk The Wizard = <your words>|n\n"
+                "Simply say what you do — in your own words — and the world will answer.\"\n"
+                "|wFor instance:|n\n"
+                "  |wsearch the ruined library for a hidden way|n\n"
+                "  |wgo south|n   ·   |wlook around|n   ·   |wask the Wizard what I should do|n\n"
+                "No special syntax — just describe your actions naturally.\n"
             )

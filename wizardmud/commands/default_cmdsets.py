@@ -19,6 +19,7 @@ from commands.talk_cmd import CmdTalk
 from commands.quest_cmds import CmdQuests, CmdApproach, CmdHint, CmdAttempt, CmdBypass, CmdSurvey
 from commands.image_cmds import CmdInspect, CmdIllustrate
 from commands.build_cmds import CmdWorldInit
+from commands.play_cmds import CmdInterpret
 
 
 class CharacterCmdSet(default_cmds.CharacterCmdSet):
@@ -51,6 +52,8 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdIllustrate())
         # world bootstrap (builder): materialize the worldbible into rooms/exits/NPCs
         self.add(CmdWorldInit())
+        # natural-language play: free-text actions -> interpreted against authoritative state
+        self.add(CmdInterpret())
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):

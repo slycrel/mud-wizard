@@ -63,31 +63,32 @@ Wizard, and drop you at the start with an intro:
 ```
 worldinit          # builds rooms/exits/NPCs from world/generated/ (safe to re-run)
 ```
-Then move around with the usual exits (`south`, `west`, …) — `look` shows each location's
-**reactive** description (it changes as you complete quests). Talk to the Wizard who's now
-standing in the keep:
+**Then just play — in plain words.** You describe what you *do*; the game interprets it
+against the world's current state. No commands to memorize, no quest names to type:
 ```
-talk The Wizard = where am I?
+search the collapsed library for a hidden way
+decipher the storm-runes carved into the wall
+go south                     # (or "head to the marsh" — movement is understood)
+look around
+ask the Wizard what I should do
 ```
-Want an ambient NPC too?
+A natural-language **interpreter** (EVA-Qwen) maps each action to whatever objective is
+reachable *here* and judges it like a good GM — a clever, plausible approach succeeds, a
+near-miss gets partial credit, nonsense just gets flavor. `look` shows each location's
+**reactive** description (it changes as you progress), and you can never dead-end: after
+repeated failure the world opens an alternative on its own. The quest machinery (flags,
+win state, solvability) stays authoritative underneath — the LLM only narrates and judges.
+
+> Power/debug commands still exist if you want them — `quests`, `approach <id>`,
+> `attempt <id> = <action>`, `hint <id>`, `bypass <id>`, `survey <location>` — but normal
+> play never needs them.
+
+Want an ambient NPC to chat with?
 ```
 create/drop Old Gus:typeclasses.llm_npcs.ChatterNPC
 set Old Gus/desc = a grizzled tavern keeper
 talk Old Gus = got any rumors?
 ```
-
-Play the generated worldbible quests (loaded from `world/generated/`):
-```
-quests                       # flag-gated list + bonus objectives + win state
-approach investigate_keep    # see the puzzle's setup + challenge
-attempt investigate_keep = I wait for moonlight and follow the glowing runes to the tapestry
-hint investigate_keep        # escalating hints if you're stuck
-bypass investigate_keep      # the Wizard's guaranteed alternative (offered only when stuck)
-survey whispering_marsh      # reactive location text — changes as you complete quests
-```
-The Wizard (EVA-Qwen) judges attempts — the canonical solution **or** a clever
-alternative succeeds, vague tries get partial credit, nonsense fails — and the
-`bypass` safety valve means you can never dead-end.
 
 > Generate a fresh world first with `python world/worldbible.py "<seed>" --rating mature`,
 > or play the one already in `world/generated/`.

@@ -397,6 +397,33 @@ the generated content wired in — the "we should bootstrap the dive better" gap
 Still the golden rule: the layout only places *scenery*. Flags, win state, and progression stay in
 the validated graph — `worldinit` never invents mechanics.
 
+## 8e. Natural-language play — the LLM as a parser over state
+✅ **built** — `world/interpreter.py`, `commands/play_cmds.py` (`CMD_NOMATCH` catch-all)
+
+The play surface used to be engine-facing: the player typed `attempt investigate_keep = …`, naming
+an internal quest token and filling a slot. That feels like operating the machine, not playing. This
+inverts it — the player describes what they **do**, in plain words, and the LLM interprets *them*.
+
+- **Catch-all** (`CmdInterpret`, keyed on `evennia.syscmdkeys.CMD_NOMATCH`): any input that isn't a
+  known command becomes an in-world action. (So there are no more "Command not available" walls.)
+- **Movement is deterministic** — `_match_exit` resolves "go south" / "head to the marsh" to a real
+  exit in code, no LLM, instant. Only non-movement goes to the model.
+- **One interpret call** (`world/interpreter.py`, run via `deferToThread`): given the player's text,
+  their location + reactive description, the exits, and *the objectives available at this spot* (with
+  secret solutions for judging), EVA returns `{kind, direction, quest_id, verdict, narration}`. It
+  both **resolves which objective** the action targets (or none) **and judges** it (success / partial
+  / fail) in a single pass — reusing puzzle_judge's HTTP/JSON plumbing.
+- **State stays authoritative**: the command applies a success only through `worldbible_loader`
+  (the quest's validated grants), so interpretation is flavorful but can never corrupt state. A
+  no-target action is pure flavor (no change). Win/solvability are unaffected.
+- **No dead ends, no commands**: after repeated failure on a needed objective the world opens an
+  alternative on its own (the bypass, narrated from the puzzle's authored reward flavor — no extra
+  reactor-blocking call). The old `quests/approach/attempt/hint/bypass/survey` commands remain as
+  optional/advanced tools; normal play never needs them.
+
+This is the answer to "AI Dungeon has no world model": the model proposes (intent + verdict), the
+validated graph disposes (flags + win). Quest ids never reach the player.
+
 ## 9. Design rule
 
 > **Game *state* is authoritative in Evennia's DB. The LLM only *narrates and
