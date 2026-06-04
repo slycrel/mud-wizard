@@ -1,0 +1,27 @@
+# Python virtualenv (machine-specific, 130MB+ — recreate with: uv venv --python 3.12 .venv)
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# macOS
+.DS_Store
+
+# Evennia runtime state (NOT source) — DB, logs, pids, collected static/media
+wizardmud/server/*.db3
+wizardmud/server/*.db3-journal
+wizardmud/server/logs/
+wizardmud/server/*.pid
+wizardmud/server/*.restart
+wizardmud/server/.static/
+wizardmud/server/.media/
+
+# Secrets (Evennia SECRET_KEY etc.) — never commit
+wizardmud/server/conf/secret_settings.py
+
+# Generated images (runtime render cache; large + regenerable via `illustrate`)
+wizardmud/web/media/
+
+# NOTE: world/generated/ (worldbible canon + quests + puzzles + reactions) IS committed —
+# it's the playable content; regenerate with world/worldbible.py if you want a fresh world.

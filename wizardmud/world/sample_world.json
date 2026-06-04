@@ -1,0 +1,28 @@
+{
+  "start": ["awoke_in_cell"],
+  "goal": ["escaped_keep"],
+  "quests": [
+    {"id": "find_loose_stone", "requires": ["awoke_in_cell"], "grants": ["found_key_hint"],
+     "location": "cell", "summary": "A loose stone hides a scratched hint about the gaoler's key."},
+
+    {"id": "get_rusty_key", "requires": ["found_key_hint"], "grants": ["rusty_key"],
+     "location": "cell", "summary": "Fish the rusty key from the drain with a bent spoon."},
+
+    {"id": "unlock_cell", "requires": ["rusty_key"], "consumes": ["rusty_key"],
+     "grants": ["cell_open"], "location": "cell",
+     "summary": "The key snaps off in the lock, but the cell door swings open."},
+
+    {"id": "sneak_corridor", "requires": ["cell_open"], "grants": ["reached_gate"],
+     "location": "corridor", "summary": "Creep past the snoring watch to the inner gate."},
+
+    {"id": "open_gate", "requires": ["reached_gate"], "grants": ["escaped_keep"],
+     "location": "gate", "summary": "Work the gate winch and slip into the night."},
+
+    {"id": "find_coin", "requires": ["cell_open"], "grants": ["has_coin"], "optional": true,
+     "location": "corridor", "summary": "A dropped coin glints under the torchlight."},
+
+    {"id": "bribe_guard", "requires": ["reached_gate", "has_coin"], "consumes": ["has_coin"],
+     "grants": ["guard_friendly"], "optional": true, "location": "gate",
+     "summary": "Slip the watchman a coin for a wink and a faster route later."}
+  ]
+}

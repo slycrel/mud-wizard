@@ -1,0 +1,120 @@
+{
+  "start": [
+    "start_game"
+  ],
+  "goal": [
+    "ritual_completed",
+    "keep_stabilized_or_destroyed"
+  ],
+  "optional_goals": [
+    "marsh_secrets_learned",
+    "marauder_alliance_forged"
+  ],
+  "quests": [
+    {
+      "id": "investigate_keep",
+      "requires": [
+        "start_game"
+      ],
+      "grants": [
+        "keep_explored"
+      ],
+      "consumes": [],
+      "optional": false,
+      "location": "crumbling_keep",
+      "summary": "Begin by exploring the crumbling keep to uncover its secrets."
+    },
+    {
+      "id": "gather_artifacts",
+      "requires": [
+        "keep_explored"
+      ],
+      "grants": [
+        "artifacts_collected"
+      ],
+      "consumes": [],
+      "optional": false,
+      "location": "storm_wracked_coast",
+      "summary": "Scour the storm-wracked coast for arcane artifacts."
+    },
+    {
+      "id": "consult_alaric",
+      "requires": [
+        "artifacts_collected"
+      ],
+      "grants": [
+        "alaric_advised"
+      ],
+      "consumes": [],
+      "optional": false,
+      "location": "crumbling_keep",
+      "summary": "Seek out Master Alaric for guidance on the artifacts."
+    },
+    {
+      "id": "confront_lyra",
+      "requires": [
+        "alaric_advised"
+      ],
+      "grants": [
+        "lyras_plans_exposed"
+      ],
+      "consumes": [],
+      "optional": false,
+      "location": "whispering_marsh",
+      "summary": "Confront Lyra the Stormcaller to learn her true intentions."
+    },
+    {
+      "id": "perform_ritual",
+      "requires": [
+        "lyras_plans_exposed"
+      ],
+      "grants": [
+        "ritual_completed",
+        "keep_stabilized_or_destroyed"
+      ],
+      "consumes": [],
+      "optional": false,
+      "location": "crumbling_keep",
+      "summary": "Perform the grand ritual to decide the keep's fate."
+    },
+    {
+      "id": "explore_marsh",
+      "requires": [
+        "keep_explored"
+      ],
+      "grants": [
+        "marsh_secrets_learned"
+      ],
+      "consumes": [],
+      "optional": true,
+      "location": "whispering_marsh",
+      "summary": "Venture into the marsh to uncover its hidden truths."
+    },
+    {
+      "id": "ally_with_marauders",
+      "requires": [
+        "artifacts_collected"
+      ],
+      "grants": [
+        "marauder_alliance_forged"
+      ],
+      "consumes": [],
+      "optional": true,
+      "location": "storm_wracked_coast",
+      "summary": "Forge an alliance with the Coastal Marauders for additional support."
+    },
+    {
+      "id": "challenge_kaelen",
+      "requires": [
+        "marauder_alliance_forged"
+      ],
+      "grants": [
+        "kaelens_aid_secured"
+      ],
+      "consumes": [],
+      "optional": true,
+      "location": "storm_wracked_coast",
+      "summary": "Challenge Kaelen the Coastblade to secure his aid."
+    }
+  ]
+}

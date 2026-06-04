@@ -1,0 +1,80 @@
+{
+  "crumbling_keep": {
+    "base": "The keep stands as a skeletal ruin against the raging storm. Its jagged stone teeth hint at once-majestic towers, and within its crumbling corridors lie decaying libraries and spectral remnants of knowledge.",
+    "reactions": [
+      {
+        "text": "Master Alaric's guidance now seems to echo in the empty halls, his teachings etched into the very stones.",
+        "requires": [
+          "alaric_advised"
+        ]
+      },
+      {
+        "text": "Scattered pages of ancient lore have been gathered from the dust, revealing secrets of a bygone era.",
+        "requires": [
+          "artifacts_collected"
+        ]
+      },
+      {
+        "text": "The hidden sanctum has been breached, its dim pulse of magic now a beacon in the gloom.",
+        "requires": [
+          "keep_explored"
+        ]
+      },
+      {
+        "text": "The wards of the keep flicker with renewed energy, a testament to a ritual that may yet save this place from oblivion.",
+        "requires": [
+          "keep_stabilized_or_destroyed"
+        ]
+      }
+    ]
+  },
+  "storm_wracked_coast": {
+    "base": "This treacherous shoreline is a gauntlet of biting winds and unrelenting waves, carving the cliffs into skeletal shapes. The boundary between land and sea is blurred by a ceaseless tumult.",
+    "reactions": [
+      {
+        "text": "Kaelen the Coastblade has been seen surveying these rocks, his presence a reminder of raids past and allegiances forged.",
+        "requires": [
+          "kaelens_aid_secured"
+        ],
+        "forbids": [
+          "marauder_alliance_forged"
+        ]
+      },
+      {
+        "text": "Long-lost relics, weathered by the storm's fury, now lie exposed on the tide-pooled rocks as if beckoning to those who dare claim them.",
+        "requires": [
+          "artifacts_collected"
+        ]
+      },
+      {
+        "text": "The Marauders' banners flutter defiantly on the wind, a symbol of their enduring claim over these ruins.",
+        "requires": [
+          "marauder_alliance_forged"
+        ]
+      }
+    ]
+  },
+  "whispering_marsh": {
+    "base": "A fetid, mist-shrouded expanse sprawls southward from the keep. Home to creatures twisted by dark energies, it is both a refuge and a death trap, its voices in the mists holding truths lost to sane minds.",
+    "reactions": [
+      {
+        "text": "The mists now murmur with secrets unearthed, their whispers a chilling testament to the marsh's ancient lore.",
+        "requires": [
+          "marsh_secrets_learned"
+        ]
+      },
+      {
+        "text": "The twisted forms of marsh denizens seem to bow in reverence, their existence forever altered by the player's passage.",
+        "requires": [
+          "ritual_completed"
+        ]
+      },
+      {
+        "text": "A spectral figure, once a lost soul of the marsh, now drifts freely\u2014a silent witness to the changes wrought by daring deeds.",
+        "requires": [
+          "lyras_plans_exposed"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "investigate_keep": {
+    "type": "search",
+    "setup": "The crumbling keep is a labyrinth of decaying corridors and spectral remnants; its secrets lie hidden behind false walls, illusionary doors, and shadowed glyphs.",
+    "challenge": "Locate and decipher hidden clues to navigate through the keep's trickery.",
+    "solution": "Follow the trail of spectral runes that appear when moonlight filters through the broken ceiling, leading to a secret chamber behind a tapestry depicting ancient storms.",
+    "hints": [
+      "Notice that certain glyphs glow faintly under moonlight.",
+      "The tapestry's depiction of a storm mirrors the keep's constant besieger."
+    ],
+    "reward_flavor": "Discovery of an ancient tome revealing the keep's forgotten lore."
+  },
+  "gather_artifacts": {
+    "type": "search",
+    "setup": "The storm-wracked coast's treacherous terrain hides ancient relics in its rocky crevices and tide pools.",
+    "challenge": "Identify safe paths through the perilous rocks to uncover the artifacts without being swept away by violent waves.",
+    "solution": "Carefully time movements with the tides and follow the path marked by carved symbols on the coastal boulders, leading to hidden alcoves.",
+    "hints": [
+      "Watch for naturally carved markers that point inland.",
+      "Timing one's steps with the ebb and flow of the tide is essential."
+    ],
+    "reward_flavor": "Acquisition of potent storm-imbued relics"
+  },
+  "consult_alaric": {
+    "type": "dialogue",
+    "setup": "Master Alaric, a grizzled sorcerer of the keep, awaits in his study filled with arcane tomes and glowing artifacts.",
+    "challenge": "Persuade Alaric to share his knowledge by proving your worth through a display of arcane understanding.",
+    "solution": "Answer Alaric's riddles correctly by demonstrating knowledge of both the keep's history and the storm's nature.",
+    "hints": [
+      "Study the ancient symbols found in the keep.",
+      "Show that you understand the duality of creation and destruction."
+    ],
+    "reward_flavor": "Alaric's mentorship and vital clues about the keep's secrets"
+  },
+  "confront_lyra": {
+    "type": "dialogue",
+    "setup": "Lyra the Stormcaller stands at the heart of a ritual circle within the whispering marsh, her voice echoing with fervor.",
+    "challenge": "Uncover Lyra's true intentions by engaging her in a debate of ideologies and challenging her fanaticism.",
+    "solution": "Present evidence of the storm's corrupting influence, such as corrupted marsh victims or twisted creatures, to shake Lyra's conviction and reveal the true cost of her plans.",
+    "hints": [
+      "Question the source of Lyra's power by citing examples from marsh lore.",
+      "Highlight the suffering inflicted on those caught in the storm's wake."
+    ],
+    "reward_flavor": "Gaining insight into the Stormcallers' dangerous plan"
+  },
+  "perform_ritual": {
+    "type": "ritual",
+    "setup": "A grand ritual requires precise placement of gathered artifacts upon an ancient altar in the keep's hidden sanctum.",
+    "challenge": "Arrange the relics according to cryptic symbols found in the keep's lore while fending off intrusive spectral forces.",
+    "solution": "Align each artifact with its corresponding celestial marking on the altar, then recite an incantation found in Alaric's tome. The ritual branches into three distinct outcomes: reinforcing the keep\u2019s wards, harnessing the storm's power, or letting nature take its course.",
+    "hints": [
+      "The symbols on the artifacts correspond with star patterns visible through the keep's broken roof.",
+      "Alaric's tome provides the correct sequence of words for each path."
+    ],
+    "reward_flavor": "A climactic decision that reshapes the fate of the keep and the storm"
+  },
+  "explore_marsh": {
+    "type": "search",
+    "setup": "The whispering marsh is a disorienting maze of mist and twisted flora, hiding relics of a lost civilization.",
+    "challenge": "Navigate the marsh by following subtle auditory cues and avoiding dangerous, mutated creatures.",
+    "solution": "Trace a path by listening to the whispers that echo truths from the past, leading to a hidden shrine. This lore provides vital context for the 'abandon' ritual path.",
+    "hints": [
+      "The clearest whispers emanate from areas free of corruption.",
+      "Ancient carvings on stone markers point the way."
+    ],
+    "reward_flavor": "Discovery of lost lore and potent, if perilous, secrets that influence the ritual's outcome."
+  },
+  "ally_with_marauders": {
+    "type": "dialogue",
+    "setup": "Kaelen the Coastblade, surrounded by his fierce crew, is skeptical of outsiders but might be swayed by a bold proposition.",
+    "challenge": "Convince Kaelen that an alliance is mutually beneficial by offering a share of the keep's relics.",
+    "solution": "Present Kaelen with a genuine relic from your collection and articulate a plan that equally benefits both parties. This alliance provides resources necessary for the 'reinforce' ritual path.",
+    "hints": [
+      "Emphasize the potential wealth from unguarded keep relics.",
+      "Appeal to Kaelen's sense of honor and fairness."
+    ],
+    "reward_flavor": "A tentative alliance with the Coastal Marauders, granting access to their resources for use in the ritual."
+  },
+  "challenge_kaelen": {
+    "type": "combat",
+    "setup": "Kaelen the Coastblade, renowned for his ruthless raids, issues a direct challenge to any who would claim the keep's treasures.",
+    "challenge": "Prove your valor by besting Kaelen in a one-on-one duel using both martial and arcane skills.",
+    "solution": "Outmaneuver Kaelen by combining precise strikes with a well-timed arcane disruption, forcing him to yield. Success yields additional relics that may be used in the ritual.",
+    "hints": [
+      "Watch for Kaelen's telltale flinch before he commits to an attack.",
+      "A sudden burst of arcane energy can break his rhythm."
+    ],
+    "reward_flavor": "Kaelen's reluctant respect and a share of his plundered relics that can be used in the ritual."
+  }
+}
