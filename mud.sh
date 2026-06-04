@@ -20,6 +20,10 @@ VENV="$ROOT/.venv"
 LMS="$HOME/.lmstudio/bin/lms"
 EVENNIA="$VENV/bin/evennia"
 
+# Evennia's launcher spawns `twistd` by bare name (relies on PATH), so the venv's
+# bin MUST be on PATH or Portal/Server die with "No such file or directory: 'twistd'".
+export PATH="$VENV/bin:$PATH"
+
 CODER="qwen/qwen3.6-27b"               # opencode
 WIZARD="eva-qwen2.5-32b-v0.2-mlx"      # live in-game game master + puzzle judge (RP-tuned)
 # NPC chatter (google/gemma-4-e4b) JIT-loads on first `talk`; prompts are tiny.
@@ -43,6 +47,9 @@ load_wizard () {
 
 start () {
   echo "▶ LM Studio server…"; server_up
+  # Clean slate: drop anything left resident (e.g. Hermes 70B from authoring, or a
+  # duplicate coder) so the wizard isn't refused with "insufficient system resources".
+  echo "▶ Unloading stale models…"; "$LMS" unload --all 2>/dev/null || true
   load_coder
   load_wizard
   echo "▶ Evennia (first run will prompt you to create a superuser)…"
